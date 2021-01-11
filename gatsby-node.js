@@ -10,7 +10,7 @@ const fs = require('fs-extra')
 const flexsearch = require('flexsearch')
 const omitEmpty = require('omit-empty')
 const urlTemplate = require('url-template')
-const { t, getPath, getFilePath } = require('./src/common')
+const { t, getPath, getFilePath, skosifyGraph } = require('./src/common')
 const context = require('./src/context')
 const queries = require('./src/queries')
 const types = require('./src/types')
@@ -52,7 +52,11 @@ exports.sourceNodes = async ({
     data: htaccess.join("\n")
   })
   const compacted = await jsonld.compact(doc, context.jsonld)
-  compacted['@graph'].forEach((graph, i) => {
+
+  // skosify compacted (add narrower statements if just broader statements are there)
+  const skosGraph = skosifyGraph(compacted["@graph"])
+
+  skosGraph.forEach((graph, i) => {
     const {
       narrower, narrowerTransitive, broader, broaderTransitive, inScheme, topConceptOf,
       hasTopConcept, ...properties

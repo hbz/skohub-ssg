@@ -150,6 +150,32 @@ const verifyFiles = (files) => {
 
 const getHeaders = (inbox, hub, self, path) => `Header set Link "<${inbox}>; rel=\\"http://www.w3.org/ns/ldp#inbox\\", <${hub}>; rel=\\"hub\\", <${self}>; rel=\\"self\\"" "expr=%{REQUEST_URI} =~ m|${path}|"`
 
+const skosifyGraph = (graphArr) => {
+  // this function will add narrower relations to broader relations if they are not present
+  const skosGraph = [...graphArr]
+  graphArr.forEach((graph) => {
+    if (graph.broader) {
+      const narrower = graph.broader;
+      const narrowerIndex = graphArr.findIndex((e) => e.id === narrower.id);
+      // check if narrower (Array) is already there, else create it and append broader to it
+      if (
+        graphArr[narrowerIndex].narrower &&
+        !graphArr[narrowerIndex].narrower.some(
+          (narrower) => narrower.id === graph.id
+        )
+      ) {
+        skosGraph[narrowerIndex].narrower.push({
+          id: graph.id,
+        });
+      } else if (!graphArr[narrowerIndex].narrower) {
+        const broader = { id: graph.id }
+        skosGraph[narrowerIndex]["narrower"] = [broader]
+      }
+    }
+  })
+  return skosGraph
+}
+
 module.exports = {
   t,
   getPath,
@@ -163,4 +189,5 @@ module.exports = {
   isValid,
   isSecured,
   getRepositoryFiles,
+  skosifyGraph
 }
