@@ -54,9 +54,9 @@ exports.sourceNodes = async ({
   const compacted = await jsonld.compact(doc, context.jsonld)
 
   // skosify compacted (add narrower statements if just broader statements are there)
-  const skosGraph = skosifyGraph(compacted["@graph"])
+  const skosifiedGraph = skosifyGraph(compacted["@graph"])
 
-  skosGraph.forEach((graph, i) => {
+  skosifiedGraph.forEach((graph, i) => {
     const {
       narrower, narrowerTransitive, broader, broaderTransitive, inScheme, topConceptOf,
       hasTopConcept, ...properties

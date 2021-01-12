@@ -151,29 +151,28 @@ const verifyFiles = (files) => {
 const getHeaders = (inbox, hub, self, path) => `Header set Link "<${inbox}>; rel=\\"http://www.w3.org/ns/ldp#inbox\\", <${hub}>; rel=\\"hub\\", <${self}>; rel=\\"self\\"" "expr=%{REQUEST_URI} =~ m|${path}|"`
 
 const skosifyGraph = (graphArr) => {
-  // this function will add narrower relations to broader relations if they are not present
-  const skosGraph = [...graphArr]
+  // this function will add narrower statements to broader statements if they are not present
+  const skosifiedGraph = graphArr.map(e => ({...e}))
   graphArr.forEach((graph) => {
     if (graph.broader) {
+      const broader = { id: graph.id };
       const narrower = graph.broader;
       const narrowerIndex = graphArr.findIndex((e) => e.id === narrower.id);
-      // check if narrower (Array) is already there, else create it and append broader to it
+      // check if narrower as property exists and broader is already there,
+      // else create narrower as Array and append broader to it
       if (
-        graphArr[narrowerIndex].narrower &&
-        !graphArr[narrowerIndex].narrower.some(
-          (narrower) => narrower.id === graph.id
+        skosifiedGraph[narrowerIndex].narrower &&
+        !skosifiedGraph[narrowerIndex].narrower.some(
+          (n) => n.id === broader.id
         )
       ) {
-        skosGraph[narrowerIndex].narrower.push({
-          id: graph.id,
-        });
-      } else if (!graphArr[narrowerIndex].narrower) {
-        const broader = { id: graph.id }
-        skosGraph[narrowerIndex]["narrower"] = [broader]
+        skosifiedGraph[narrowerIndex].narrower.push(broader);
+      } else if (!skosifiedGraph[narrowerIndex].narrower) {
+        skosifiedGraph[narrowerIndex]["narrower"] = [broader];
       }
     }
   })
-  return skosGraph
+  return skosifiedGraph
 }
 
 module.exports = {
